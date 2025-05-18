@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react';
 import map from './assets/map.svg'
 import logo from './assets/logo.svg'
 import search from './assets/search.svg'
@@ -9,8 +9,21 @@ import LoginModal from './components/LoginModal';
 
 
 function App() {
+  const [products, setProducts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+
+  useEffect(() => {
+    const url = selectedCategory
+      ? `/api/products?category=${encodeURIComponent(selectedCategory)}`
+      : '/api/products';
+    
+    fetch(url)
+      .then(res => res.json())
+      .then(data => setProducts(data))
+      .catch(error => console.error('Error fetching products:', error));
+  }, [selectedCategory]);
 
   
   const handlePriceChange = (minPrice, maxPrice) => {
@@ -124,6 +137,7 @@ function App() {
           </div>
         </div>
       </div>
+      
     </>
   )
 }
