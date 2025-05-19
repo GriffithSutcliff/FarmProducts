@@ -3,6 +3,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const app = express();
 app.use(cors());
@@ -41,6 +42,42 @@ app.get('/api/products', async (req, res) => {
     } catch (error) {
       console.error('DB error:', error);
       res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/register', async (req, res) => {
+    const { name, email, password } = req.body;
+  
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email и пароль обязательны' });
+    }
+  
+    try {
+      const userExists = await pool.query(
+        'SELECT * FROM users WHERE email = $1',
+        [email]
+      );
+  
+      if (userExists.rows.length > 0) {
+        return res.status(400).json({ message: 'Пользователь с таким email уже существует' });
+      }
+  
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+  
+      const newUser = await pool.query(
+        'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, email',
+        [name, email, hashedPassword]
+      );
+  
+      res.status(201).json({
+        message: 'Пользователь успешно зарегистрирован',
+        user: newUser.rows[0]
+      });
+  
+    } catch (error) {
+      console.error('Ошибка при регистрации:', error);
+      res.status(500).json({ message: 'Ошибка сервера' });
     }
   });
 

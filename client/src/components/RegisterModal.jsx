@@ -2,27 +2,60 @@ import React, { useState } from 'react';
 
 const RegisterModal = ({ onClose, onLoginClick }) => {
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     if (formData.password !== formData.confirmPassword) {
-      alert("Пароли не совпадают");
+      setError("Пароли не совпадают");
       return;
     }
-    console.log('Registration data:', formData);
-    onClose();
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Ошибка регистрации');
+      }
+
+      console.log('Успешная регистрация:', data.message);
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Произошла ошибка при регистрации');
+      console.error('Ошибка:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -31,7 +64,20 @@ const RegisterModal = ({ onClose, onLoginClick }) => {
         <button className="close-button" onClick={onClose}>×</button>
         <h2>Создать аккаунт</h2>
         
+        {error && <div className="error-message">{error}</div>}
+        
         <form onSubmit={handleSubmit}>
+        <div className="form-group">
+            <label htmlFor="email">Имя</label>
+            <input
+              type="name"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
           <div className="form-group">
             <label htmlFor="email">Почта</label>
             <input
@@ -68,7 +114,13 @@ const RegisterModal = ({ onClose, onLoginClick }) => {
             />
           </div>
           
-          <button type="submit" className="submit-button">Создать аккаунт</button>
+          <button 
+            type="submit" 
+            className="submit-button"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Загрузка...' : 'Создать аккаунт'}
+          </button>
         </form>
         
         <div className="login-link">

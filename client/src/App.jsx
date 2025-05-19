@@ -30,7 +30,6 @@ function App() {
     console.log(`Price range changed: ${minPrice} – ${maxPrice} руб.`);
   };
 
-  // Логика слайдера
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
