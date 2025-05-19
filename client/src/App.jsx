@@ -8,12 +8,41 @@ import RegisterModal from './components/RegisterModal';
 import LoginModal from './components/LoginModal';
 
 function App() {
+  const [user, setUser] = useState([])
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
+
+  const fetchUserData = async () => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/decode-token', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('Ошибка токена');
+      
+      const userData = await response.json();
+      setUser(userData);
+    } catch (err) {
+      console.error('Ошибка:', err);
+      localStorage.removeItem('token');
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   useEffect(() => {
     const url = selectedCategory
@@ -43,36 +72,51 @@ function App() {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setUser([]);
+  };
+
   return (
     <>
-      <div className="footer1">
+      <div className="footer1">      
         <div className="adress">
           <img src={map} className="map-icon"/>
           <p>Улица Пушкина Дом Колотушкина</p>
         </div>
-        <div className="reg">
-          <p onClick={() => setShowLoginModal(true)}>Войти</p>
-          {showLoginModal && (
-            <LoginModal 
-              onClose={() => setShowLoginModal(false)}
-              onLoginClick={() => {
-                setShowLoginModal(false);
-                setShowRegisterModal(true);
-              }}
-            />
+          {user.length !== 0 ? (
+            <div className="reg">
+            <p className="user-name">Ваше имя: {user.name}</p>
+            <p className="user-email">Ваша почта: {user.email}</p>
+            <p onClick={handleLogout}>Выйти</p>
+            </div>
+          ) : (  
+            <div className="reg2">
+              <p onClick={() => setShowLoginModal(true)}>Войти</p>
+              {showLoginModal && (
+                <LoginModal 
+                  onSuccess={fetchUserData}
+                  onClose={() => setShowLoginModal(false)}
+                  onLoginClick={() => {
+                    setShowLoginModal(false);
+                    setShowRegisterModal(true);
+                  }}
+                />
+              )}
+              <p>/</p>
+              <p onClick={() => setShowRegisterModal(true)}>Регистрация</p>
+              {showRegisterModal && (
+                <RegisterModal 
+                  onClose={() => setShowRegisterModal(false)}
+                  onSuccess={fetchUserData}
+                  onLoginClick={() => {
+                    setShowRegisterModal(false);
+                    setShowLoginModal(true);
+                  }}
+                />
+              )}
+            </div>
           )}
-          <p>/</p>
-          <p onClick={() => setShowRegisterModal(true)}>Регистрация</p>
-          {showRegisterModal && (
-            <RegisterModal 
-              onClose={() => setShowRegisterModal(false)}
-              onLoginClick={() => {
-                setShowRegisterModal(false);
-                setShowLoginModal(true);
-              }}
-            />
-          )}
-        </div>
       </div>
       <div className="footer2">
         <div className="logo-container">

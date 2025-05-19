@@ -1,23 +1,47 @@
 import React, { useState } from 'react';
 
-const LoginModal = ({ onClose, onLoginClick }) => {
+const LoginModal = ({ onClose, onLoginClick, onSuccess }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('log data:', formData);
-    onClose();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Ошибка входа');
+      }
+      localStorage.setItem('token', data.token);
+      onSuccess();
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Произошла ошибка при входе');
+      console.error('Login error:', err);
+    }
   };
 
   return (
@@ -25,6 +49,8 @@ const LoginModal = ({ onClose, onLoginClick }) => {
       <div className="modal-content">
         <button className="close-button" onClick={onClose}>×</button>
         <h2>Войти в аккаунт</h2>
+        
+        {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -51,7 +77,13 @@ const LoginModal = ({ onClose, onLoginClick }) => {
             />
           </div>
           
-          <button type="submit" className="submit-button">Войти</button>
+          <button 
+            type="submit" 
+            className="submit-button"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Вход...' : 'Войти'}
+          </button>
         </form>
         
         <div className="login-link">

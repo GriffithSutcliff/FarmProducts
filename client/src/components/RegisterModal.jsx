@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const RegisterModal = ({ onClose, onLoginClick }) => {
+const RegisterModal = ({ onClose, onLoginClick, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -47,14 +47,13 @@ const RegisterModal = ({ onClose, onLoginClick }) => {
       if (!response.ok) {
         throw new Error(data.message || 'Ошибка регистрации');
       }
-
+      localStorage.setItem('token', data.token);
       console.log('Успешная регистрация:', data.message);
+      onSuccess();
       onClose();
     } catch (err) {
       setError(err.message || 'Произошла ошибка при регистрации');
       console.error('Ошибка:', err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
