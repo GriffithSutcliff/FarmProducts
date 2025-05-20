@@ -6,6 +6,7 @@ import bag from './assets/bag.svg';
 import PriceFilter from './components/PriceFilter';
 import RegisterModal from './components/RegisterModal';
 import LoginModal from './components/LoginModal';
+import Cart from './components/Cart'
 
 function App() {
   const [user, setUser] = useState([])
@@ -13,7 +14,9 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showCart, setShowCart] = useState(false)
   const [currentPage, setCurrentPage] = useState(1);
+  const [cart, setCart] = useState([])
   const productsPerPage = 8;
 
   const fetchUserData = async () => {
@@ -77,6 +80,49 @@ function App() {
     setUser([]);
   };
 
+  const addToCart = (product) => {
+    setCart(prevCart => {
+      const existingProductIndex = prevCart.findIndex(item => item.id === product.id);
+      
+      if (existingProductIndex >= 0) {
+        const updatedCart = [...prevCart];
+        updatedCart[existingProductIndex] = {
+          ...updatedCart[existingProductIndex],
+          quantity: updatedCart[existingProductIndex].quantity + 1
+        };
+        return updatedCart;
+      } else {
+        return [...prevCart, { ...product, quantity: 1 }];
+      }
+    });
+  };
+  const removeFromCart = (product) => {
+    setCart(prevCart => {
+      const existingProductIndex = prevCart.findIndex(item => item.id === product.id);
+      
+      if (existingProductIndex >= 0) {
+        const existingProduct = prevCart[existingProductIndex];
+        
+        if (existingProduct.quantity === 1) {
+          return prevCart.filter(item => item.id !== product.id);
+        } else {
+          const updatedCart = [...prevCart];
+          updatedCart[existingProductIndex] = {
+            ...existingProduct,
+            quantity: existingProduct.quantity - 1
+          };
+          return updatedCart;
+        }
+      }
+      return prevCart;
+    });
+  };
+  const removeProduct = (product) =>{
+    const prevCart = cart.filter(item => item.id !== product.id)
+    setCart(prevCart)
+    return
+  }
+
   return (
     <>
       <div className="footer1">      
@@ -131,11 +177,20 @@ function App() {
           <button>Поиск</button>
         </div>
         <div className="bag-container">
-          <img src={bag} />
+          <img src={bag} onClick={() => setShowCart(true)} />
           <div className="bag-name">
             <p>корзина</p>
-            <h1>стоимость</h1>
+            <h1>{cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)} руб.</h1>
           </div>
+          {showCart &&
+          <Cart 
+            cartItems={cart} 
+            onAdd={addToCart} 
+            onRemove={removeFromCart}
+            onDelete={removeProduct}
+            onClose={() => {setShowCart(false)}
+          }
+          />}
         </div>
       </div>
       <div className="background">
@@ -208,7 +263,7 @@ function App() {
                       {product.category === 'Овощи' && <span className="in-stock">В наличии</span>}
                       {product.category !== 'Овощи' && <span className="out-of-stock">Нет в наличии</span>}
                     </div>
-                    <button className="add-to-cart">Добавить</button>
+                    <button className="add-to-cart" onClick={() => addToCart(product)} >Добавить</button>
                   </div>
                 ))}
               </div>
