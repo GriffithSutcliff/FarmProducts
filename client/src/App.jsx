@@ -22,6 +22,7 @@ function App() {
   const [actualProduct, setActualProduct] = useState(undefined)
   const [minPrice, setMinPrice] = useState(0)
   const [maxPrice, setMaxPrice] = useState(500)
+  const [searchQuery, setSearchQuery] = useState('');
   const productsPerPage = 8;
 
   const fetchUserData = async () => {
@@ -69,9 +70,11 @@ function App() {
     console.log(`Price range changed: ${minPrice} – ${maxPrice} ₽`);
   };
 
-  const filteredProducts = products.filter(
-    (product) => product.price >= minPrice && product.price <= maxPrice
-  );
+  const filteredProducts = products.filter((product) => {
+    const matchesPrice = product.price >= minPrice && product.price <= maxPrice;
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesPrice && matchesSearch;
+  });
   
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
@@ -138,6 +141,10 @@ function App() {
     setActualProduct(product)
     return
   }
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
 
   return (
     <>
@@ -188,7 +195,10 @@ function App() {
         <div className="search-container">
           <div className="search">
             <img src={search} className="search-icon"/>
-            <input placeholder="поиск" />
+            <input placeholder="поиск"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            />
           </div>
           <button>Поиск</button>
         </div>
