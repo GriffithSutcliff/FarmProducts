@@ -7,6 +7,7 @@ import PriceFilter from './components/PriceFilter';
 import RegisterModal from './components/RegisterModal';
 import LoginModal from './components/LoginModal';
 import Cart from './components/Cart'
+import MoreInfo from './components/MoreInfo'
 
 function App() {
   const [user, setUser] = useState([])
@@ -17,6 +18,8 @@ function App() {
   const [showCart, setShowCart] = useState(false)
   const [currentPage, setCurrentPage] = useState(1);
   const [cart, setCart] = useState([])
+  const [showMoreInfo, setShowMoreInfo] = useState(false)
+  const [actualProduct, setActualProduct] = useState(undefined)
   const productsPerPage = 8;
 
   const fetchUserData = async () => {
@@ -42,7 +45,6 @@ function App() {
       localStorage.removeItem('token');
     }
   };
-
   useEffect(() => {
     fetchUserData();
   }, []);
@@ -120,6 +122,11 @@ function App() {
   const removeProduct = (product) =>{
     const prevCart = cart.filter(item => item.id !== product.id)
     setCart(prevCart)
+    return
+  }
+  const selectProduct = (product) =>{
+    setShowMoreInfo(true) 
+    setActualProduct(product)
     return
   }
 
@@ -260,9 +267,8 @@ function App() {
                     <div className="product-info">
                       <p className="product-name">{product.name}</p>
                       <p className="product-price">{product.price} руб.</p>
-                      {product.category === 'Овощи' && <span className="in-stock">В наличии</span>}
-                      {product.category !== 'Овощи' && <span className="out-of-stock">Нет в наличии</span>}
                     </div>
+                    <button className="add-to-cart" onClick={() => selectProduct(product)} >Подробнее</button>
                     <button className="add-to-cart" onClick={() => addToCart(product)} >Добавить</button>
                   </div>
                 ))}
@@ -279,6 +285,12 @@ function App() {
             </div>
           </div>
         </div>
+        {showMoreInfo && 
+          <MoreInfo 
+            product={actualProduct}
+            onClose={() => setShowMoreInfo(false)}
+          />
+        }
       </div>
     </>
   );
