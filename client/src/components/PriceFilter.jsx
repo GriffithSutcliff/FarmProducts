@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 
 const PriceFilter = ({ onPriceChange }) => {
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(100);
+  const [maxPrice, setMaxPrice] = useState(500);
+  const MAX_RANGE = 500;
 
   const handleMinPriceChange = (e) => {
     const value = Math.min(Number(e.target.value), maxPrice - 1);
@@ -16,22 +17,25 @@ const PriceFilter = ({ onPriceChange }) => {
     if (onPriceChange) onPriceChange(minPrice, value);
   };
 
+  const minPercent = (minPrice / MAX_RANGE) * 100;
+  const maxPercent = (maxPrice / MAX_RANGE) * 100;
+
   const progressStyle = {
-    background: `linear-gradient(to right, #e0e0e0 ${minPrice}%, #4CAF50 ${minPrice}%, #4CAF50 ${maxPrice}%, #e0e0e0 ${maxPrice}%)`
+    background: `linear-gradient(to right, #e0e0e0 ${minPercent}%, #4CAF50 ${minPercent}%, #4CAF50 ${maxPercent}%, #e0e0e0 ${maxPercent}%)`
   };
 
   return (
     <div className="price-filter">
       <div className="price-range">
-        <span>${minPrice}</span>
+        <span>{minPrice} ₽</span>
         <span> – </span>
-        <span>${maxPrice}</span>
+        <span>{maxPrice} ₽</span>
       </div>
       <div className="slider-container" style={progressStyle}>
         <input
           type="range"
           min="0"
-          max="100"
+          max={MAX_RANGE}
           value={minPrice}
           onChange={handleMinPriceChange}
           className="slider"
@@ -39,7 +43,7 @@ const PriceFilter = ({ onPriceChange }) => {
         <input
           type="range"
           min="0"
-          max="100"
+          max={MAX_RANGE}
           value={maxPrice}
           onChange={handleMaxPriceChange}
           className="slider"
@@ -58,7 +62,7 @@ const PriceFilter = ({ onPriceChange }) => {
         <input
           type="number"
           min={minPrice + 1}
-          max="100"
+          max={MAX_RANGE}
           value={maxPrice}
           onChange={handleMaxPriceChange}
           className="price-input"

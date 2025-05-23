@@ -20,6 +20,8 @@ function App() {
   const [cart, setCart] = useState([])
   const [showMoreInfo, setShowMoreInfo] = useState(false)
   const [actualProduct, setActualProduct] = useState(undefined)
+  const [minPrice, setMinPrice] = useState(0)
+  const [maxPrice, setMaxPrice] = useState(500)
   const productsPerPage = 8;
 
   const fetchUserData = async () => {
@@ -61,13 +63,20 @@ function App() {
   }, [selectedCategory]);
 
   const handlePriceChange = (minPrice, maxPrice) => {
-    console.log(`Price range changed: ${minPrice} – ${maxPrice} руб.`);
+    setMinPrice(minPrice)
+    setMaxPrice(maxPrice)
+    setCurrentPage(1);
+    console.log(`Price range changed: ${minPrice} – ${maxPrice} ₽`);
   };
 
+  const filteredProducts = products.filter(
+    (product) => product.price >= minPrice && product.price <= maxPrice
+  );
+  
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(products.length / productsPerPage);
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
@@ -187,7 +196,7 @@ function App() {
           <img src={bag} onClick={() => setShowCart(true)} />
           <div className="bag-name">
             <p>корзина</p>
-            <h1>{cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)} руб.</h1>
+            <h1>{cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)} ₽</h1>
           </div>
           {showCart &&
           <Cart 
@@ -266,7 +275,7 @@ function App() {
                     <img src={product.image_url} alt={product.name} className="product-image" />
                     <div className="product-info">
                       <p className="product-name">{product.name}</p>
-                      <p className="product-price">{product.price} руб.</p>
+                      <p className="product-price">{product.price} ₽</p>
                     </div>
                     <button className="add-to-cart" onClick={() => selectProduct(product)} >Подробнее</button>
                     <button className="add-to-cart" onClick={() => addToCart(product)} >Добавить</button>
